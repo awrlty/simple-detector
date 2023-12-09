@@ -106,8 +106,19 @@ def check_nan(idx, images, labels):
     print(f"Nan of labels: {nan_label}\n")
 
 
+def decode_labels(labels):
+    decoded_labels = []
+    for label in labels:
+        for i in range(config.S):
+            for j in range(config.S):
+                x_cell, y_cell, w, h, conf = label[j, i, :].tolist()[:5]
+                if conf == 1.0:
+                    decoded_labels.append([(j * config.S) + x_cell * config.S, (i * config.S) + (y_cell * config.S), w, h])
+                    print([((j * config.S) + x_cell * config.S)/config.IMAGE_SIZE, ((i * config.S) + (y_cell * config.S))/config.IMAGE_SIZE, w, h])
+
+
 if __name__ == "__main__":
-    train_set = PointDataset('train', augment=True)
+    train_set = PointDataset('train', augment=False)
     train_loader = DataLoader(train_set,
                               batch_size=config.BATCH_SIZE,
                               # batch_size=1,
@@ -117,10 +128,7 @@ if __name__ == "__main__":
                               shuffle=False)
 
     for idx, (images, labels) in enumerate(train_loader):
-        # print("\n")
-        # print(images.shape)
-        # print(labels.shape)
-        # break
+        decode_labels(labels)
 
         # if torch.sum(labels.squeeze(0)) == 0.0:
         #     print(idx)
@@ -128,4 +136,4 @@ if __name__ == "__main__":
         # print(torch.nonzero(labels.view(-1)).size(0))
         # print("end")
         # break
-        check_nan(idx, images, labels)
+        # check_nan(idx, images, labels)

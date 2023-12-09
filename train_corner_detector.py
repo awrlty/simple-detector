@@ -48,7 +48,7 @@ if __name__ == "__main__":
     logfile = open(os.path.join(log_dir, 'log.txt'), 'a+')
     best_val_loss = np.inf
 
-    # torch.autograd.set_detect_anomaly(True)
+    torch.autograd.set_detect_anomaly(True)
     for epoch in range(config.EPOCHS):
         print('\n')
         print('Starting epoch {} / {}'.format(epoch, config.EPOCHS))
