@@ -21,7 +21,7 @@ class PointDataset(Dataset):
 
         self.boxes = []
         # label_path = os.path.join(config.DATA_PATH, "labels_voc_format.txt")
-        label_path = os.path.join(config.DATA_PATH, "labels_integrated.txt")  # yolo format
+        label_path = os.path.join(config.DATA_PATH, "labels_obj.txt")  # yolo format
         with open(label_path, "r") as f:
             lines = f.readlines()
         for line in lines:
@@ -46,7 +46,7 @@ class PointDataset(Dataset):
 
     def __getitem__(self, idx):
         # Resize and Augment Image
-        image_path = os.path.join(self.image_dir, f"{self.filenames[idx]}.jpg")
+        image_path = os.path.join(self.image_dir, f"{self.filenames[idx]}")
         image = Image.open(image_path).convert('RGB')
         image = image.resize((config.IMAGE_SIZE, config.IMAGE_SIZE))
         if self.augment:
@@ -118,6 +118,12 @@ def decode_labels(labels):
 
 
 if __name__ == "__main__":
+    from model import CornerDetectionNet
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model_path = r"D:\Projects\2023_daqs_exterior_wall_quality_inspector\corner-detector\results\corner_detector\Dec07_14-30-23\model_best.pth"
+    model = CornerDetectionNet().to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+
     train_set = PointDataset('train', augment=False)
     train_loader = DataLoader(train_set,
                               batch_size=config.BATCH_SIZE,
@@ -127,8 +133,17 @@ if __name__ == "__main__":
                               drop_last=True,
                               shuffle=False)
 
-    for idx, (images, labels) in enumerate(train_loader):
-        decode_labels(labels)
+    with torch.no_grad():
+        model.eval()
+        for idx, (images, labels) in enumerate(train_loader):
+            # decode_labels(labels)
+            images, labels = images.to(device), labels.to(device)
+            preds = model(images)
+
+            for pred in preds:
+                print(pred.sum())
+
+            break
 
         # if torch.sum(labels.squeeze(0)) == 0.0:
         #     print(idx)

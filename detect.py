@@ -264,10 +264,9 @@ if __name__ == '__main__':
     os.makedirs(config.OUTPUT_PATH, exist_ok=True)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model_path = r"D:\Projects\2023_daqs_exterior_wall_quality_inspector\corner-detector\results\corner_detector\Dec07_14-30-23\model_best.pth"
-    model = CornerDetectionNet()
+    model_path = r"D:\Projects\2023_daqs_exterior_wall_quality_inspector\corner-detector\results\corner_detector\Dec12_14-33-17\model_best.pth"
+    model = CornerDetectionNet().to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
-    model.to(device)
 
     with torch.no_grad():
         model.eval()
@@ -275,7 +274,12 @@ if __name__ == '__main__':
             images = images.to(device)
             preds = model(images)
 
-            print(preds.shape)
+            print(preds.sum().item())
+
+            # if preds.sum().item() != 0:
+            #     print(preds.sum())
+            # else:
+            #     "-"
 
             # boxes, confidences = decode_preds(preds, conf_thresh=0.1)
             # if boxes.size(0) == 0:

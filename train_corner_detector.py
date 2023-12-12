@@ -10,6 +10,7 @@ from model import CornerDetectionNet
 from loss import CornerLoss
 import config
 from dataset import PointDataset
+# from utils import mean_average_precision
 
 
 if __name__ == "__main__":
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     logfile = open(os.path.join(log_dir, 'log.txt'), 'a+')
     best_val_loss = np.inf
 
-    torch.autograd.set_detect_anomaly(True)
+    # torch.autograd.set_detect_anomaly(True)
     for epoch in range(config.EPOCHS):
         print('\n')
         print('Starting epoch {} / {}'.format(epoch, config.EPOCHS))
@@ -94,8 +95,9 @@ if __name__ == "__main__":
         model.eval()
         val_loss = 0.0
         total_batch = 0
+        batch_map = 0.0
 
-        for i, (imgs, targets) in enumerate(val_loader):
+        for imgs, targets in val_loader:
             # Load data as a batch.
             batch_size_this_iter = imgs.size(0)
             imgs, targets = imgs.to(device), targets.to(device)
@@ -108,7 +110,10 @@ if __name__ == "__main__":
             loss_this_iter = loss.item()
             val_loss += loss_this_iter
             total_batch += batch_size_this_iter
+            # batch_map += mean_average_precision(preds, targets, iou_thresh=0.3)
+
         val_loss /= float(total_batch)
+        batch_map /= float(total_batch)
 
         # Save results.
         logfile.writelines(str(epoch) + '\t' + str(val_loss) + '\n')
@@ -120,7 +125,8 @@ if __name__ == "__main__":
             torch.save(model.state_dict(), os.path.join(log_dir, 'model_best.pth'))
 
         # Print.
-        print('Epoch [%d/%d], Val Loss: %.4f, Best Val Loss: %.4f'% (epoch, config.EPOCHS, val_loss, best_val_loss))
+        print(f'Epoch [{epoch}/{config.EPOCHS}], Val Loss: {val_loss: .4f}, Best Val Loss: {best_val_loss: .4f}')
+        # print(f'Epoch [{epoch}/{config.EPOCHS}], Val Loss: {val_loss: .4f}, Best Val Loss: {best_val_loss: .4f}, mAP: {batch_map: .4f}')
 
         # TensorBoard.
         writer.add_scalar('test/loss', val_loss, epoch)

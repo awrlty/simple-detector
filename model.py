@@ -68,7 +68,7 @@ def test():
     output = model(image)
 
     # Check ouput tensor size, which should be [B, S, S, depth]
-    print(output.shape)
+    print(output.sum())
     # print(torch.nonzero(output.view(-1)).size(0))
 
 
